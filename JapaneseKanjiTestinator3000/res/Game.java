@@ -1,5 +1,6 @@
 //TODO fix bug with escape
-//TODO allow for hotkeys in game
+//TODO ADD EXPLOSIONSSSSSSS
+
 public class Game {
 
 	public static void main(String[] args) {

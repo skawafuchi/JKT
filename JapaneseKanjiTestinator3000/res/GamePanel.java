@@ -56,10 +56,6 @@ public class GamePanel extends JPanel implements ActionListener {
 		charsOnScreen = new ArrayList<JapaneseChar>();
 		this.setPreferredSize(new Dimension(WINDOW_WIDTH,WINDOW_HEIGHT));
 	}
-	
-	public static void fuckYou(){
-		System.out.println("fuck you");
-	}
 
 	public void update() {
 
@@ -87,7 +83,6 @@ public class GamePanel extends JPanel implements ActionListener {
 		gameWindow.refresh.stop();
 		gameWindow.rateOfWords.stop();
 		charsOnScreen.clear();
-		gameWindow.menuBar.setVisible(true);
 		opacity = 0f;
 		DOGE.stop();
 		displayComment = false;

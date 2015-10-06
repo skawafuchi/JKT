@@ -3,8 +3,11 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
@@ -14,33 +17,35 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.Timer;
-
-//TODO Slow down input for volume control
-//TODO Change size of window
-//TODO add visual for combo increase? - Not too distracting
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 @SuppressWarnings("serial")
-public class GameWindow extends JFrame implements ActionListener, KeyListener {
+public class GameWindow extends JFrame implements ActionListener, KeyListener, MouseListener {
 
 	public boolean gameOver;
 	public String buffer;
 	public JMenuBar menuBar;
 	GamePanel gPanel;
 	JMenuItem fontSize, loadWordSet, volumeInc, volumeDec, play, about;
+	JLabel musicLabel, masterVolumeLabel;
 	public JRadioButtonMenuItem easy, medium, hard;
+	JSlider musicVolumeSlider, masterVolumeSlider;
 	public Timer refresh, rateOfWords;
 	public int fSize;
 	public int dSetting = 1;
-	Clip clip;
-	Float volLvl = -20.0f;// -20
-	FloatControl gainControl;
+	Clip music, incorrectSFX, correctSFX;
+	Float musicVolLvl = 0.50f, SFXVolLvl = 1.0f;
+	FloatControl musicGainControl, correctSFXGainControl, incorrectSFXGainControl;
 	AboutWindow aboutWindow = new AboutWindow();
 
 	int increment;
@@ -50,14 +55,27 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 		super("Japanese Kanji Testinator 3000");
 
 		try {
-			clip = AudioSystem.getClip();
+			music = AudioSystem.getClip();
 			AudioInputStream inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("test.wav"));
-			clip.open(inputStream);
-			clip.loop(Clip.LOOP_CONTINUOUSLY);
-			gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-			gainControl.setValue(volLvl);
-		} catch (Exception e) {
+			music.open(inputStream);
+			music.loop(Clip.LOOP_CONTINUOUSLY);
+			musicGainControl = (FloatControl) music.getControl(FloatControl.Type.MASTER_GAIN);
+			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
 
+			inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("correct.wav"));
+			correctSFX = AudioSystem.getClip();
+			correctSFX.open(inputStream);
+			correctSFXGainControl = (FloatControl) correctSFX.getControl(FloatControl.Type.MASTER_GAIN);
+			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
+
+			inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("incorrect.wav"));
+			incorrectSFX = AudioSystem.getClip();
+			incorrectSFX.open(inputStream);
+			incorrectSFXGainControl = (FloatControl) incorrectSFX.getControl(FloatControl.Type.MASTER_GAIN);
+			incorrectSFXGainControl.setValue(SFXVolLvl);
+
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 
 		BufferedImage icon = null;
@@ -92,15 +110,17 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 		settings.add(fontSize);
 		settings.addSeparator();
 
-		volumeInc = new JMenuItem("Increase Volume");
-		volumeInc.addActionListener(this);
-		settings.add(volumeInc);
-		volumeInc.setAccelerator(KeyStroke.getKeyStroke('+'));
+		masterVolumeLabel = new JLabel("Master Volume");
+		settings.add(masterVolumeLabel);
+		masterVolumeSlider = new JSlider(0,100,100);
+		masterVolumeSlider.addMouseListener(this);
+		settings.add(masterVolumeSlider);
 
-		volumeDec = new JMenuItem("Decrease Volume");
-		volumeDec.addActionListener(this);
-		settings.add(volumeDec);
-		volumeDec.setAccelerator(KeyStroke.getKeyStroke('-'));
+		musicLabel = new JLabel("Music Volume");
+		settings.add(musicLabel);
+		musicVolumeSlider = new JSlider(0,100,50);
+		musicVolumeSlider.addMouseListener(this);
+		settings.add(musicVolumeSlider);
 
 		play = new JMenuItem("Play/Stop");
 		play.addActionListener(this);
@@ -139,7 +159,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 		setJMenuBar(menuBar);
 		gPanel = new GamePanel(this);
 		this.setLayout(new BorderLayout());
-		add(gPanel,BorderLayout.CENTER);
+		add(gPanel, BorderLayout.CENTER);
 
 		pack();
 		repaint();
@@ -176,6 +196,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 		} else if (event == refresh) {
 			gPanel.update();
 			gPanel.repaint();
+			resetSound();
 		} else if (event == rateOfWords) {
 			gPanel.addWord();
 			increment++;
@@ -191,21 +212,11 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 			dSetting = 2;
 		} else if (event == hard) {
 			dSetting = 3;
-		} else if (event == volumeInc) {
-			 if (volLvl < 0f) {
-				 volLvl += 10f;
-			 }
-			 gainControl.setValue(volLvl);
-		} else if (event == volumeDec) {
-			if (volLvl > -80) {
-				volLvl -= 10f;
-			}
-			gainControl.setValue(volLvl);
 		} else if (event == play) {
-			if (clip.isRunning()) {
-				clip.stop();
+			if (music.isRunning()) {
+				music.stop();
 			} else {
-				clip.loop(Clip.LOOP_CONTINUOUSLY);
+				music.loop(Clip.LOOP_CONTINUOUSLY);
 			}
 		} else if (event == about) {
 			aboutWindow.setVisible(true);
@@ -239,7 +250,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 				buffer += "k";
 			} else if (e.getKeyCode() == KeyEvent.VK_L) {
 				buffer += "l";
-			} else if (e.getKeyCode() == KeyEvent.VK_M) {
+			} else if (e.getKeyCode() == KeyEvent.VK_M && !(e.getModifiers() == InputEvent.CTRL_MASK)) {
 				buffer += "m";
 			} else if (e.getKeyCode() == KeyEvent.VK_N) {
 				buffer += "n";
@@ -266,18 +277,24 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 			} else if (e.getKeyCode() == KeyEvent.VK_Y) {
 				buffer += "y";
 			} else if (e.getKeyCode() == KeyEvent.VK_Z) {
-				buffer += "z";			
+				buffer += "z";
 			} else if (e.getKeyCode() == KeyEvent.VK_QUOTE) {
 				buffer += "'";
 			} else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 				buffer += " ";
 			} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 				for (int i = 0; i < gPanel.charsOnScreen.size(); i++) {
-				//	if (buffer.equals(gPanel.charsOnScreen.get(i).myRomaji)) {
+					// if (buffer.equals(gPanel.charsOnScreen.get(i).myRomaji))
+					// {
 					if (gPanel.charsOnScreen.get(i).myRomaji.contains(buffer)) {
 						gPanel.charsOnScreen.remove(i);
 						gPanel.score += 1 + 1 * gPanel.combo;
 						gPanel.combo++;
+						if (correctSFX.isActive()) {
+							correctSFX.setFramePosition(0);
+							correctSFX.stop();
+						}
+						correctSFX.start();
 						if (gPanel.combo > gPanel.highestCombo) {
 							gPanel.highestCombo++;
 						}
@@ -287,6 +304,11 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 						gPanel.combo = 0;
 						gPanel.DOGE.stop();
 						gPanel.displayComment = false;
+						if (incorrectSFX.isActive()) {
+							incorrectSFX.setFramePosition(0);
+							incorrectSFX.stop();
+						}
+						incorrectSFX.start();
 					}
 				}
 				buffer = "";
@@ -294,9 +316,8 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 				if (buffer.length() >= 1) {
 					buffer = buffer.substring(0, buffer.length() - 1);
 				}
-			}else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && e.isShiftDown() ){
+			} else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && e.isShiftDown()) {
 				buffer = "";
-				System.out.println("got here");
 			} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 				gPanel.endGame(true);
 			}
@@ -322,8 +343,6 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 			for (int i = 0; i < 3; i++) {
 				gPanel.addWord();
 			}
-
-			menuBar.setVisible(false);
 			this.pack();
 			this.repaint();
 		}
@@ -332,6 +351,55 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener {
 
 	@Override
 	public void keyTyped(KeyEvent e) {
+	}
+
+	private void resetSound() {
+		if (!correctSFX.isActive()) {
+			correctSFX.setFramePosition(0);
+		}
+		if (!incorrectSFX.isActive()) {
+			incorrectSFX.setFramePosition(0);
+		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		if (e.getSource() == masterVolumeSlider) {
+			SFXVolLvl = ((JSlider) e.getSource()).getValue() * 0.01f;
+			musicVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * musicVolumeSlider.getValue();
+			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
+			incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
+			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
+
+		} else if (e.getSource() == musicVolumeSlider) {
+			musicVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * masterVolumeSlider.getValue();
+			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
+		}
+
 	}
 
 }
