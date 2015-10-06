@@ -11,6 +11,7 @@ import javax.swing.JOptionPane;
 
 public class WordDatabase {
 	public static ArrayList<JapaneseChar> wordBank = new ArrayList<JapaneseChar>();
+	static File lastDirectory = new File(ClassLoader.getSystemClassLoader().getResource(".").getPath());
 
 	public WordDatabase() {
 		wordBank.add(new JapaneseChar("馬鹿", new HashSet<String>() {
@@ -21,13 +22,17 @@ public class WordDatabase {
 	}
 
 	public static void add() {
-		wordBank.clear();
+
 		JFileChooser fc = new JFileChooser();
+		if (lastDirectory != null) {
+			fc.setCurrentDirectory(lastDirectory);
+		}
 		int ret = fc.showOpenDialog(null);
 
 		if (ret == JFileChooser.APPROVE_OPTION) {
+			lastDirectory = fc.getCurrentDirectory();
 			File open = fc.getSelectedFile();
-
+			wordBank.clear();
 			try {
 				FileInputStream fis = new FileInputStream(open);
 				InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
@@ -47,8 +52,8 @@ public class WordDatabase {
 						if (!wordBank.contains(attempt)) {
 							wordBank.add(attempt);
 						}
-						
-					//blank lines
+
+						// blank lines
 					} catch (NoSuchElementException e) {
 						continue;
 					}
@@ -66,9 +71,7 @@ public class WordDatabase {
 					}
 				}));
 			}
-
 		}
-
 	}
 
 }

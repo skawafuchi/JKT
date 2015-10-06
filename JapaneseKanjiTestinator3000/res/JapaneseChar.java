@@ -10,8 +10,8 @@ public class JapaneseChar {
 	public JapaneseChar(String kanji, HashSet<String> romaji){
 		myRomaji = romaji;
 		myKanji = kanji;
-		
 	}
+	
 	public JapaneseChar(String kanji, HashSet<String> romaji, int xPos, int yPos, int rate){
 		myRate = rate;
 		myRomaji = romaji;
