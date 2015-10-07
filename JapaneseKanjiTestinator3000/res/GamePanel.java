@@ -98,8 +98,10 @@ public class GamePanel extends JPanel implements ActionListener {
 		this.forceQuit = forceQuit;
 		gameWindow.gameOver = true;
 		gameWindow.refresh.stop();
-		gameWindow.rateOfWords.stop();
+		gameWindow.rateOfWordsTimer.stop();
+		gameWindow.addWordTimer.stop();
 		charsOnScreen.clear();
+		fireworks.clear();
 		opacity = 0f;
 		DOGE.stop();
 		displayComment = false;

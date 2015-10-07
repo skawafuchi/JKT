@@ -57,7 +57,7 @@ public class Firework {
 				deltaY += 0.09f;
 				deltaY *= 0.95;
 				deltaX *= 0.95;
-				alpha -= 0.0001f;
+				alpha -= 0.00005f;
 			}
 		}
 
