@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -23,7 +24,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSlider;
-import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 @SuppressWarnings("serial")
@@ -33,17 +33,18 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 	public JMenuBar menuBar;
 	GamePanel gPanel;
 	JMenuItem loadWordSet, volumeInc, volumeDec, play, about;
-	JLabel musicLabel, sfxLabel, masterVolumeLabel, fontSizeLabel;
+	JLabel musicLabel, sfxLabel, masterVolumeLabel, fontSizeLabel, settingsAutoLoadedLabel, difficultyLabel;
 	public JRadioButtonMenuItem easy, medium, hard;
 	JSlider musicVolumeSlider, masterVolumeSlider, sfxVolumeSlider, fontSizeSlider;
 	public Timer refresh, rateOfWordsTimer, addWordTimer;
 	public int fontSize;
-	public int dSetting = 1;
+	public int difficultySetting = 1;
 	Clip music, incorrectSFX, correctSFX;
 	Float musicVolLvl = 1.0f, SFXVolLvl = 1.0f, masterVolLvl = 1.0f;
 	FloatControl musicGainControl, correctSFXGainControl, incorrectSFXGainControl;
 	AboutWindow aboutWindow = new AboutWindow();
 	int increment;
+	SettingsLoader settingsLoader = new SettingsLoader();
 
 	public GameWindow() {
 
@@ -53,7 +54,6 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			music = AudioSystem.getClip();
 			AudioInputStream inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("test.wav"));
 			music.open(inputStream);
-			music.loop(Clip.LOOP_CONTINUOUSLY);
 			musicGainControl = (FloatControl) music.getControl(FloatControl.Type.MASTER_GAIN);
 			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
 
@@ -67,7 +67,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			incorrectSFX = AudioSystem.getClip();
 			incorrectSFX.open(inputStream);
 			incorrectSFXGainControl = (FloatControl) incorrectSFX.getControl(FloatControl.Type.MASTER_GAIN);
-			incorrectSFXGainControl.setValue(SFXVolLvl);
+			incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -84,7 +84,6 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		buffer = "";
 		gameOver = true;
 		increment = 0;
-		fontSize = 30;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		menuBar = new JMenuBar();
@@ -102,7 +101,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		settings = new JMenu("Settings");
 		fontSizeLabel = new JLabel("Font Size");
 		settings.add(fontSizeLabel);
-		fontSizeSlider = new JSlider(1, 50, fontSize);
+		fontSizeSlider = new JSlider(1, 50, 30);
 		fontSizeSlider.addMouseListener(this);
 		settings.add(fontSizeSlider);
 		settings.addSeparator();
@@ -127,22 +126,31 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 
 		settings.addSeparator();
 
-		ButtonGroup dSettingGroup = new ButtonGroup();
+		ButtonGroup difficultySettingGroup = new ButtonGroup();
+		difficultyLabel = new JLabel("Difficulty");
+		settings.add(difficultyLabel);
 		easy = new JRadioButtonMenuItem("Easy");
 		easy.setSelected(true);
-		dSettingGroup.add(easy);
+		difficultySettingGroup.add(easy);
 		easy.addActionListener(this);
 		settings.add(easy);
 
 		medium = new JRadioButtonMenuItem("Medium");
-		dSettingGroup.add(medium);
+		difficultySettingGroup.add(medium);
 		medium.addActionListener(this);
 		settings.add(medium);
 
 		hard = new JRadioButtonMenuItem("Hard");
-		dSettingGroup.add(hard);
+		difficultySettingGroup.add(hard);
 		hard.addActionListener(this);
 		settings.add(hard);
+		settings.addSeparator();
+		settingsAutoLoadedLabel = settingsLoader.successfulLoad ? new JLabel("Loaded Settings")
+				: new JLabel("Settings Load Failed");
+		settingsAutoLoadedLabel.setOpaque(true);
+		settingsAutoLoadedLabel
+				.setBackground(settingsLoader.successfulLoad ? new Color(152, 251, 152) : new Color(240, 128, 128));
+		settings.add(settingsAutoLoadedLabel);
 
 		menuBar.add(settings);
 		// End Settings Area
@@ -167,6 +175,35 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
 
+		try {
+			if (settingsLoader.successfulLoad) {
+				fontSize = Integer.parseInt(settingsLoader.settings.get("fontSize"));
+				fontSizeSlider.setValue(fontSize);
+				
+				masterVolLvl = Float.parseFloat(settingsLoader.settings.get("masterVolume"));
+				musicVolLvl = Float.parseFloat(settingsLoader.settings.get("musicVolume"));				
+				SFXVolLvl = Float.parseFloat(settingsLoader.settings.get("SFXVolume"));
+				
+				masterVolumeSlider.setValue((int) (masterVolLvl * 100));
+				musicVolumeSlider.setValue((int) (musicVolLvl * 100));
+				sfxVolumeSlider.setValue((int) (SFXVolLvl * 100));
+
+				
+				musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
+				correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
+				incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + incorrectSFXGainControl.getMaximum()) - 50.0f));
+				
+				fontSizeSlider.setValue(fontSize);
+				if (settingsLoader.settings.get("musicToggled").equals("On")){
+					music.loop(Clip.LOOP_CONTINUOUSLY);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			fontSize = 30;
+			music.loop(Clip.LOOP_CONTINUOUSLY);
+		}
+
 	}
 
 	@Override
@@ -186,11 +223,11 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		} else if (event == loadWordSet) {
 			WordDatabase.add();
 		} else if (event == easy) {
-			dSetting = 1;
+			difficultySetting = 1;
 		} else if (event == medium) {
-			dSetting = 2;
+			difficultySetting = 2;
 		} else if (event == hard) {
-			dSetting = 3;
+			difficultySetting = 3;
 		} else if (event == about) {
 			aboutWindow.setVisible(true);
 		}
@@ -318,7 +355,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			gameOver = false;
 			refresh = new Timer(40, this);
 			refresh.start();
-			rateOfWordsTimer = new Timer(10000 - dSetting * 1000, this);
+			rateOfWordsTimer = new Timer(10000 - difficultySetting * 1000, this);
 			rateOfWordsTimer.start();
 			addWordTimer = new Timer(1500, this);
 			addWordTimer.start();
