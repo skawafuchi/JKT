@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 
 @SuppressWarnings("serial")
 public class GamePanel extends JPanel implements ActionListener {
-	final int WINDOW_HEIGHT = 750, WINDOW_WIDTH = 1000, COMBO_IMAGE_START = 100, COMBO_ANIMATION_START = 110;
+	public final int WINDOW_HEIGHT = 750, WINDOW_WIDTH = 1000, COMBO_IMAGE_START = 100, COMBO_ANIMATION_START = 110, MAX_LIVES = 5;
 	String[] dogeComment = new String[] { "wow", "such combo", "many speed", "so nihongo", "very amaze" };
 	public ArrayList<JapaneseChar> charsOnScreen;
 	ArrayList<Firework> fireworks, fireworksToRemove;
@@ -50,7 +50,7 @@ public class GamePanel extends JPanel implements ActionListener {
 		random = new Random();
 		wordDatabase = new WordDatabase(gameWindow.settingsLoader);
 		score = 0;
-		lives = 3;
+		lives = MAX_LIVES;
 		combo = 0;
 		opacity = 0f;
 
@@ -113,8 +113,9 @@ public class GamePanel extends JPanel implements ActionListener {
 	public void addWord() {
 		int index = random.nextInt(wordDatabase.wordBank.size());
 		charsOnScreen.add(new JapaneseChar(wordDatabase.wordBank.get(index).myKanji,
-				wordDatabase.wordBank.get(index).myRomaji, random.nextInt(WINDOW_WIDTH - 50), random.nextInt(30) + 10,
+				wordDatabase.wordBank.get(index).myRomaji, random.nextInt(WINDOW_WIDTH - (wordDatabase.wordBank.get(index).myKanji.length() * gameWindow.fontSize)), random.nextInt(30) + 10,
 				gameWindow.difficultySetting + random.nextInt(gameWindow.difficultySetting)));
+		
 	}
 
 	public void paintComponent(Graphics g) {
@@ -173,7 +174,7 @@ public class GamePanel extends JPanel implements ActionListener {
 				g.drawString("Just Missed: " + missed, this.getWidth() / 2 - 60, (this.getHeight() - 30));
 			}
 		}
-
+	
 		g.setFont(new Font("MS Mincho (Body Asian)", Font.BOLD, gameWindow.fontSize));
 		for (int i = 0; i < charsOnScreen.size(); i++) {
 			g.drawString(charsOnScreen.get(i).myKanji, charsOnScreen.get(i).myXPos, charsOnScreen.get(i).myYPos);

@@ -52,7 +52,7 @@ public class Firework {
 			if (alpha > 0.0f) {
 				x += deltaX;
 				y += deltaY;
-				deltaY += 0.09f;
+				deltaY += rand.nextFloat();
 				deltaY *= 0.95;
 				deltaX *= 0.95;
 				alpha -= 0.00005f;

@@ -1,8 +1,8 @@
-difficulty:hard
+difficulty:medium
 MusicToggled:On
 masterVolume:1.0
 musicToggled:Off
 vocabDirectory:C:\Users\sk\Documents\JKT
-SFXVolume:0.14
-fontSize:33
-musicVolume:0.73
+SFXVolume:1.0
+fontSize:50
+musicVolume:0.0

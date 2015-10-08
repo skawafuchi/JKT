@@ -132,7 +132,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 
 		// File Area
 		file = new JMenu("File");
-		loadWordSet = new JMenuItem("Load Word Set");
+		loadWordSet = new JMenuItem("Load Vocabulary Set");
 		loadWordSet.addActionListener(this);
 		file.add(loadWordSet);
 		menuBar.add(file);
@@ -364,7 +364,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 				for (int i = 0; i < gPanel.charsOnScreen.size(); i++) {
 					if (gPanel.charsOnScreen.get(i).myRomaji.contains(buffer)) {
-						gPanel.fireworks.add(new Firework(gPanel.charsOnScreen.get(i).myXPos,
+						gPanel.fireworks.add(new Firework(gPanel.charsOnScreen.get(i).myXPos + ((gPanel.charsOnScreen.get(i).myKanji.length() * fontSize)/2),
 								gPanel.charsOnScreen.get(i).myYPos, 500));
 						gPanel.charsOnScreen.remove(i);
 						gPanel.score += 1 + 1 * gPanel.combo;
@@ -412,7 +412,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			for (int i = 0; i < difficultySetting; i++) {
 				gPanel.addWord();
 			}
-			gPanel.lives = 3;
+			gPanel.lives = gPanel.MAX_LIVES;
 			gPanel.score = 0;
 			gPanel.combo = 0;
 			gPanel.highestCombo = 0;
