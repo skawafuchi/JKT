@@ -9,6 +9,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
@@ -44,7 +46,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 	FloatControl musicGainControl, correctSFXGainControl, incorrectSFXGainControl;
 	AboutWindow aboutWindow = new AboutWindow();
 	int increment;
-	SettingsLoader settingsLoader = new SettingsLoader();
+	public SettingsLoader settingsLoader = new SettingsLoader();
 
 	public GameWindow() {
 
@@ -84,7 +86,46 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		buffer = "";
 		gameOver = true;
 		increment = 0;
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowListener() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				settingsLoader.saveSettings();
+				setVisible(false);
+				dispose();
+				System.exit(0);
+			}
+
+			@Override
+			public void windowActivated(WindowEvent arg0) {
+
+			}
+
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent arg0) {
+
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent arg0) {
+
+			}
+
+			@Override
+			public void windowIconified(WindowEvent arg0) {
+
+			}
+
+			@Override
+			public void windowOpened(WindowEvent arg0) {
+
+			}
+		});
 
 		menuBar = new JMenuBar();
 		JMenu file, settings, help;
@@ -179,28 +220,43 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			if (settingsLoader.successfulLoad) {
 				fontSize = Integer.parseInt(settingsLoader.settings.get("fontSize"));
 				fontSizeSlider.setValue(fontSize);
-				
+
 				masterVolLvl = Float.parseFloat(settingsLoader.settings.get("masterVolume"));
-				musicVolLvl = Float.parseFloat(settingsLoader.settings.get("musicVolume"));				
+				musicVolLvl = Float.parseFloat(settingsLoader.settings.get("musicVolume"));
 				SFXVolLvl = Float.parseFloat(settingsLoader.settings.get("SFXVolume"));
-				
+
 				masterVolumeSlider.setValue((int) (masterVolLvl * 100));
 				musicVolumeSlider.setValue((int) (musicVolLvl * 100));
 				sfxVolumeSlider.setValue((int) (SFXVolLvl * 100));
 
-				
+				musicVolLvl = masterVolumeSlider.getValue() * 0.0001f * musicVolumeSlider.getValue();
+				SFXVolLvl = masterVolumeSlider.getValue() * 0.0001f * sfxVolumeSlider.getValue();
 				musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
 				correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 				incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + incorrectSFXGainControl.getMaximum()) - 50.0f));
-				
+
 				fontSizeSlider.setValue(fontSize);
-				if (settingsLoader.settings.get("musicToggled").equals("On")){
+				if (settingsLoader.settings.get("musicToggled").equals("On")) {
 					music.loop(Clip.LOOP_CONTINUOUSLY);
 				}
+				switch (settingsLoader.settings.get("difficulty")) {
+				case "easy":
+					easy.setSelected(true);
+					difficultySetting = 1;
+					break;
+				case "medium":
+					medium.setSelected(true);
+					difficultySetting = 2;
+					break;
+				case "hard":
+					hard.setSelected(true);
+					difficultySetting = 3;
+					break;
+				}
+
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
-			fontSize = 30;
 			music.loop(Clip.LOOP_CONTINUOUSLY);
 		}
 
@@ -221,15 +277,19 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		} else if (event == addWordTimer) {
 			gPanel.addWord();
 		} else if (event == loadWordSet) {
-			WordDatabase.add();
+			gPanel.wordDatabase.loadWordSet();
 		} else if (event == easy) {
 			difficultySetting = 1;
+			settingsLoader.changeSetting("difficulty", "easy");
 		} else if (event == medium) {
 			difficultySetting = 2;
+			settingsLoader.changeSetting("difficulty", "medium");
 		} else if (event == hard) {
 			difficultySetting = 3;
+			settingsLoader.changeSetting("difficulty", "hard");
 		} else if (event == about) {
 			aboutWindow.setVisible(true);
+			aboutWindow.setLocation(this.getLocation());
 		}
 	}
 
@@ -238,8 +298,10 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		if (e.getKeyCode() == KeyEvent.VK_M && ((e.getModifiers() & InputEvent.CTRL_MASK) != 0)) {
 			if (music.isRunning()) {
 				music.stop();
+				settingsLoader.changeSetting("musicToggled","Off");
 			} else {
 				music.loop(Clip.LOOP_CONTINUOUSLY);
+				settingsLoader.changeSetting("musicToggled","On");
 			}
 		}
 		if (!gameOver) {
@@ -347,6 +409,9 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 	public void keyReleased(KeyEvent e) {
 		// Start game
 		if (e.getKeyCode() == KeyEvent.VK_SPACE && gameOver) {
+			for (int i = 0; i < difficultySetting; i++) {
+				gPanel.addWord();
+			}
 			gPanel.lives = 3;
 			gPanel.score = 0;
 			gPanel.combo = 0;
@@ -357,13 +422,12 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 			refresh.start();
 			rateOfWordsTimer = new Timer(10000 - difficultySetting * 1000, this);
 			rateOfWordsTimer.start();
-			addWordTimer = new Timer(1500, this);
+			addWordTimer = new Timer(7500 - (difficultySetting * 2000), this);
 			addWordTimer.start();
 			increment = 0;
 			this.pack();
 			this.repaint();
 		}
-
 	}
 
 	@Override
@@ -372,47 +436,44 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (e.getSource() == masterVolumeSlider) {
-			SFXVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * sfxVolumeSlider.getValue();
-			musicVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * musicVolumeSlider.getValue();
+			SFXVolLvl = masterVolumeSlider.getValue() * 0.0001f * sfxVolumeSlider.getValue();
+			musicVolLvl = masterVolumeSlider.getValue() * 0.0001f * musicVolumeSlider.getValue();
 			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 			incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
-
+			settingsLoader.changeSetting("masterVolume", Float.toString((masterVolumeSlider.getValue()/100.0f)));
 		} else if (e.getSource() == sfxVolumeSlider) {
-			SFXVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * masterVolumeSlider.getValue();
+			SFXVolLvl = sfxVolumeSlider.getValue() * 0.0001f * masterVolumeSlider.getValue();
 			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 			incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
-
+			settingsLoader.changeSetting("SFXVolume", Float.toString((sfxVolumeSlider.getValue()/100.0f)));
 		} else if (e.getSource() == musicVolumeSlider) {
-			musicVolLvl = ((JSlider) e.getSource()).getValue() * 0.0001f * masterVolumeSlider.getValue();
+			musicVolLvl = musicVolumeSlider.getValue() * 0.0001f * masterVolumeSlider.getValue();
 			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
-
+			settingsLoader.changeSetting("musicVolume", Float.toString((musicVolumeSlider.getValue()/100.0f)));
 		} else if (e.getSource() == fontSizeSlider) {
-			fontSize = ((JSlider) e.getSource()).getValue();
+			fontSize = fontSizeSlider.getValue();
+			settingsLoader.changeSetting("fontSize", Integer.toString(fontSizeSlider.getValue()));
 		}
 
 	}

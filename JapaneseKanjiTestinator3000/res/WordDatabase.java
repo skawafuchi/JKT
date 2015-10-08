@@ -10,10 +10,16 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 public class WordDatabase {
-	public static ArrayList<JapaneseChar> wordBank = new ArrayList<JapaneseChar>();
-	static File lastDirectory = new File(ClassLoader.getSystemClassLoader().getResource(".").getPath());
+	public ArrayList<JapaneseChar> wordBank = new ArrayList<JapaneseChar>();
+	File lastDirectory;
+	SettingsLoader settingsLoader;
 
-	public WordDatabase() {
+	@SuppressWarnings("serial")
+	public WordDatabase(SettingsLoader sl) {
+		settingsLoader = sl;
+		if (settingsLoader.successfulLoad) {
+			lastDirectory = new File(settingsLoader.settings.get("vocabDirectory"));
+		}
 		wordBank.add(new JapaneseChar("馬鹿", new HashSet<String>() {
 			{
 				add("baka");
@@ -21,8 +27,8 @@ public class WordDatabase {
 		}));
 	}
 
-	public static void add() {
-
+	@SuppressWarnings("serial")
+	public void loadWordSet() {
 		JFileChooser fc = new JFileChooser();
 		if (lastDirectory != null) {
 			fc.setCurrentDirectory(lastDirectory);
@@ -31,6 +37,7 @@ public class WordDatabase {
 
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			lastDirectory = fc.getCurrentDirectory();
+			settingsLoader.changeSetting("vocabDirectory", lastDirectory.toString());
 			File open = fc.getSelectedFile();
 			wordBank.clear();
 			try {
@@ -41,12 +48,26 @@ public class WordDatabase {
 				HashSet<String> romaji;
 				for (String line = br.readLine(); line != null; line = br.readLine()) {
 					try {
-						st = new StringTokenizer(line, " 　");
+						// st = new StringTokenizer(line, " ");
+						st = new StringTokenizer(line, "：:");
 						String kanji = st.nextToken();
 						romaji = new HashSet<String>();
 						st = new StringTokenizer(st.nextToken(), ",");
+						String temp = "";
 						while (st.hasMoreTokens()) {
-							romaji.add(st.nextToken());
+							temp = st.nextToken();
+							//remove space if accidentally added to beginning
+							if (temp.charAt(0) == ' ') {
+								temp = temp.substring(1);
+							}
+							//remove space at end if not empty string after first space removed
+							if (temp.length() > 0 && temp.charAt(temp.length() - 1) == ' ') {
+								temp = temp.substring(0, temp.length() - 1);
+							}
+							
+							if (temp.length() > 0) {
+								romaji.add(temp);
+							}
 						}
 						JapaneseChar attempt = new JapaneseChar(kanji, romaji);
 						if (!wordBank.contains(attempt)) {
@@ -58,8 +79,9 @@ public class WordDatabase {
 						continue;
 					}
 				}
-
 				br.close();
+				isr.close();
+				fis.close();
 				JOptionPane.showMessageDialog(null, "Successfully loaded file: " + open.getName(), "Success!",
 						JOptionPane.INFORMATION_MESSAGE);
 			} catch (Exception e) {

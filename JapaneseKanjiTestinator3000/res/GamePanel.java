@@ -22,7 +22,7 @@ public class GamePanel extends JPanel implements ActionListener {
 	String[] dogeComment = new String[] { "wow", "such combo", "many speed", "so nihongo", "very amaze" };
 	public ArrayList<JapaneseChar> charsOnScreen;
 	ArrayList<Firework> fireworks, fireworksToRemove;
-	WordDatabase wordBank;
+	WordDatabase wordDatabase;
 	boolean displayComment = false, forceQuit = true;
 	public int lives, score, combo, highestCombo;
 	int shake = -5, dogeWord, dogePos, dogeColor;
@@ -48,7 +48,7 @@ public class GamePanel extends JPanel implements ActionListener {
 			System.out.println(e.getMessage());
 		}
 		random = new Random();
-		wordBank = new WordDatabase();
+		wordDatabase = new WordDatabase(gameWindow.settingsLoader);
 		score = 0;
 		lives = 3;
 		combo = 0;
@@ -111,9 +111,9 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void addWord() {
-		int index = random.nextInt(WordDatabase.wordBank.size());
-		charsOnScreen.add(new JapaneseChar(WordDatabase.wordBank.get(index).myKanji,
-				WordDatabase.wordBank.get(index).myRomaji, random.nextInt(WINDOW_WIDTH - 50), random.nextInt(30) + 10,
+		int index = random.nextInt(wordDatabase.wordBank.size());
+		charsOnScreen.add(new JapaneseChar(wordDatabase.wordBank.get(index).myKanji,
+				wordDatabase.wordBank.get(index).myRomaji, random.nextInt(WINDOW_WIDTH - 50), random.nextInt(30) + 10,
 				gameWindow.difficultySetting + random.nextInt(gameWindow.difficultySetting)));
 	}
 

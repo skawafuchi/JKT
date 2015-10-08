@@ -1,40 +1,71 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
 public class SettingsLoader {
-	FileInputStream settingsStream;
-	public HashMap<String,String> settings = new HashMap<String,String>();
+
+	public HashMap<String, String> settings = new HashMap<String, String>();
 	public boolean successfulLoad;
-	SettingsLoader(){
+
+	SettingsLoader() {
 		load();
 	}
-	
-	void load(){
+
+	void load() {
 		try {
-			//for jar export
-			//settingsStream = new FileInputStream("settings.JKTSettings");
-			
-			//for development
-			settingsStream = new FileInputStream(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath() + "settings.JKTSettings");
-			
+			// for jar export
+			// FileInputStream settingsStream = new
+			// FileInputStream("settings.JKTSettings");
+
+			// for development
+			FileInputStream settingsStream = new FileInputStream(
+					this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
+							+ "settings.JKTSettings");
+
 			BufferedReader br = new BufferedReader(new InputStreamReader(settingsStream, "UTF-8"));
 			StringTokenizer st;
 			for (String line = br.readLine(); line != null; line = br.readLine()) {
-				st = new StringTokenizer(line,":");
-				settings.put(st.nextToken(), st.nextToken());
+				st = new StringTokenizer(line, ":");
+				String key = st.nextToken(), value = st.nextToken();
+				if (st.countTokens() > 0) {
+					value += ":" + st.nextToken();
+				}
+				settings.put(key, value);
 			}
 			successfulLoad = true;
-		} catch (Exception e){
+			br.close();
+			settingsStream.close();
+		} catch (Exception e) {
 			successfulLoad = false;
 			e.printStackTrace();
 		}
 	}
-	
-	void saveSetting(String setting,String value){
-		
+
+	void changeSetting(String setting, String value) {
+		settings.put(setting, value);
 	}
-	
+
+	void saveSettings() {
+		if (successfulLoad) {
+			try {
+				//FileWriter fileWriter = new FileWriter("settings.JKTSettings");
+
+				FileWriter fileWriter = new FileWriter(
+						this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
+								+ "settings.JKTSettings");
+
+				for (String key : settings.keySet()) {
+					fileWriter.write(key + ":" + settings.get(key));
+					fileWriter.write(System.getProperty("line.separator"));
+				}
+				fileWriter.close();
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}
+	}
+
 }

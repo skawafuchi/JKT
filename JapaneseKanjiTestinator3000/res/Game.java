@@ -1,8 +1,5 @@
-//Add save/load settings
-// - working on loading sound settings
-//
-//Enums? Difficulty increase too slow, then too hard later
-
+//add settings save for high score? w/ file name ? w/ difficulty setting?
+//change about panel
 public class Game {
 
 	public static void main(String[] args) {

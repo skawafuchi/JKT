@@ -1,7 +1,8 @@
-vocabDirectory:NONE
-fontSize:10
-masterVolume:0.5
-musicVolume:0.1
-SFXVolume:0.2
-difficulty:1
-musicToggled:On
+difficulty:hard
+MusicToggled:On
+masterVolume:1.0
+musicToggled:Off
+vocabDirectory:C:\Users\sk\Documents\JKT
+SFXVolume:0.14
+fontSize:33
+musicVolume:0.73

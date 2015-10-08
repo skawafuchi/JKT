@@ -2,8 +2,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Random;
 
-//weird behavior
-//when particle # increases, step is run faster
 public class Firework {
 	short framesToLive = 50;
 	int originX, originY;
