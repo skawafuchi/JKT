@@ -113,7 +113,9 @@ public class GamePanel extends JPanel implements ActionListener {
 	public void addWord() {
 		int index = random.nextInt(wordDatabase.wordBank.size());
 		charsOnScreen.add(new JapaneseChar(wordDatabase.wordBank.get(index).myKanji,
-				wordDatabase.wordBank.get(index).myRomaji, random.nextInt(WINDOW_WIDTH - (wordDatabase.wordBank.get(index).myKanji.length() * gameWindow.fontSize)), random.nextInt(30) + 10,
+				wordDatabase.wordBank.get(index).myRomaji, 
+				random.nextInt(WINDOW_WIDTH - (wordDatabase.wordBank.get(index).myKanji.length() * gameWindow.fontSize) < 0? 1:WINDOW_WIDTH - (wordDatabase.wordBank.get(index).myKanji.length() * gameWindow.fontSize)),
+				random.nextInt(30) + 10,
 				gameWindow.difficultySetting + random.nextInt(gameWindow.difficultySetting)));
 		
 	}

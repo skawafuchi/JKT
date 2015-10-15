@@ -254,6 +254,8 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 					break;
 				}
 
+			}else{
+				throw new Exception("SETTINGS DIDN'T LOAD YO");
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());

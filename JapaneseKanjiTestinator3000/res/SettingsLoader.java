@@ -17,13 +17,12 @@ public class SettingsLoader {
 	void load() {
 		try {
 			// for jar export
-			// FileInputStream settingsStream = new
-			// FileInputStream("settings.JKTSettings");
+//			FileInputStream settingsStream = new FileInputStream("settings.JKTSettings");
 
 			// for development
-			FileInputStream settingsStream = new FileInputStream(
-					this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
-							+ "settings.JKTSettings");
+			 FileInputStream settingsStream = new FileInputStream(
+			 this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
+			 + "settings.JKTSettings");
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(settingsStream, "UTF-8"));
 			StringTokenizer st;
@@ -51,11 +50,11 @@ public class SettingsLoader {
 	void saveSettings() {
 		if (successfulLoad) {
 			try {
-				//FileWriter fileWriter = new FileWriter("settings.JKTSettings");
+//				FileWriter fileWriter = new FileWriter("settings.JKTSettings");
 
-				FileWriter fileWriter = new FileWriter(
-						this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
-								+ "settings.JKTSettings");
+				 FileWriter fileWriter = new FileWriter(
+				 this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
+				 + "settings.JKTSettings");
 
 				for (String key : settings.keySet()) {
 					fileWriter.write(key + ":" + settings.get(key));

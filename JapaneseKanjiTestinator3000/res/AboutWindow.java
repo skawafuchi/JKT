@@ -47,7 +47,7 @@ public class AboutWindow extends JFrame {
 
 		JComponent settingsPanel = makeTextPanel(
 				"<html><div style=\"margin:0px 30px 0px 30px;\">The settings.JKTSettings file needs to be in the same directory as this executable or it won't load properly. Settings are saved to the settings file every time the executable is closed.<br><br> You can check if the settings were loaded"
-						+ "correctly or not by clicking on the Settings tab and looking at the bottom.</div></html>");
+						+ " correctly or not by clicking on the Settings tab and looking at the bottom.</div></html>");
 		tabbedPane.addTab("About Settings", settingsPanel);
 
 		JComponent vocabPanel = makeTextPanel(
