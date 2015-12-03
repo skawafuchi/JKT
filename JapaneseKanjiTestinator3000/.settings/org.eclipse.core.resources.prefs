@@ -1,7 +1,7 @@
 eclipse.preferences.version=1
-encoding//res/AboutWindow.java=UTF-8
-encoding//res/Game.java=UTF-8
-encoding//res/GamePanel.java=UTF-8
-encoding//res/JapaneseChar.java=UTF-8
-encoding//res/SettingsLoader.java=UTF-8
-encoding//res/WordDatabase.java=UTF-8
+encoding//res/javaFiles/AboutWindow.java=UTF-8
+encoding//res/javaFiles/Game.java=UTF-8
+encoding//res/javaFiles/GamePanel.java=UTF-8
+encoding//res/javaFiles/JapaneseChar.java=UTF-8
+encoding//res/javaFiles/SettingsLoader.java=UTF-8
+encoding//res/javaFiles/WordDatabase.java=UTF-8
