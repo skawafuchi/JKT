@@ -62,18 +62,18 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 
 		try {
 			music = AudioSystem.getClip();
-			AudioInputStream inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("test.wav"));
+			AudioInputStream inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("test.wav"));//this.getClass().getResource("test.wav"));
 			music.open(inputStream);
 			musicGainControl = (FloatControl) music.getControl(FloatControl.Type.MASTER_GAIN);
 			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
 
-			inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("correct.wav"));
+			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("correct.wav"));//this.getClass().getResource("correct.wav"));
 			correctSFX = AudioSystem.getClip();
 			correctSFX.open(inputStream);
 			correctSFXGainControl = (FloatControl) correctSFX.getControl(FloatControl.Type.MASTER_GAIN);
 			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 
-			inputStream = AudioSystem.getAudioInputStream(this.getClass().getResource("incorrect.wav"));
+			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("incorrect.wav"));//this.getClass().getResource("incorrect.wav"));
 			incorrectSFX = AudioSystem.getClip();
 			incorrectSFX.open(inputStream);
 			incorrectSFXGainControl = (FloatControl) incorrectSFX.getControl(FloatControl.Type.MASTER_GAIN);
@@ -262,7 +262,7 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 				incorrectSFXGainControl.setValue((SFXVolLvl * (50.0f + incorrectSFXGainControl.getMaximum()) - 50.0f));
 
 				fontSizeSlider.setValue(fontSize);
-				if (settingsLoader.getSetting("musicToggled").equals("On")) {
+				if (settingsLoader.getSetting("musicToggled").equals("on")) {
 					music.loop(Clip.LOOP_CONTINUOUSLY);
 				}
 				switch (settingsLoader.getSetting("difficulty")) {
@@ -345,10 +345,10 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 		if (e.getKeyCode() == KeyEvent.VK_M && ((e.getModifiers() & InputEvent.CTRL_MASK) != 0)) {
 			if (music.isRunning()) {
 				music.stop();
-				settingsLoader.changeSetting("musicToggled", "Off");
+				settingsLoader.changeSetting("musicToggled", "off");
 			} else {
 				music.loop(Clip.LOOP_CONTINUOUSLY);
-				settingsLoader.changeSetting("musicToggled", "On");
+				settingsLoader.changeSetting("musicToggled", "on");
 			}
 		}
 		if (!gameOver) {

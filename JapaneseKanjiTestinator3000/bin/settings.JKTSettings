@@ -1,8 +1,8 @@
-difficulty:medium
+difficulty:hard
 masterVolume:1.0
-musicToggled:On
-vocabDirectory:C:\Users\sk\Documents\JKT
+musicToggled:off
+vocabDirectory:NONE
 SFXVolume:0.2
-fontSize:31
+fontSize:10
 gameMode:winter
 musicVolume:1.0
