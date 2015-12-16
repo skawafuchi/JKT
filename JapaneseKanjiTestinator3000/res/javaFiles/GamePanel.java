@@ -65,56 +65,96 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void update() {
-
-		for (Firework f : fireworks) {
-			f.step();
-			if (f.alpha < 0.0f) {
-				fireworksToRemove.add(f);
-			}
-		}
-
-		if (!fireworksToRemove.isEmpty()) {
-			for (Firework rm : fireworksToRemove) {
-				fireworks.remove(rm);
-			}
-			fireworksToRemove.clear();
-		}
-
-		for (int i = 0; i < charsOnScreen.size(); i++) {
-			charsOnScreen.get(i).posUpdate();
-			if (charsOnScreen.get(i).myYPos > WINDOW_HEIGHT) {
-				missed = charsOnScreen.get(i).myKanji + "  " + charsOnScreen.get(i).myRomaji;
-				missedWords.add(charsOnScreen.get(i).myKanji + "  " + charsOnScreen.get(i).myRomaji);
-				charsOnScreen.remove(i);
-				lives--;
-				combo = 0;
-				opacity = 0f;
-				displayComment = false;
-				DOGE.stop();
-				if (lives == 0) {
-					endGame(false);
+		switch (gameWindow.gameMode) {
+		case WINTER:
+			break;
+		case SUMMER:
+			for (Firework f : fireworks) {
+				f.step();
+				if (f.alpha < 0.0f) {
+					fireworksToRemove.add(f);
 				}
 			}
+
+			if (!fireworksToRemove.isEmpty()) {
+				for (Firework rm : fireworksToRemove) {
+					fireworks.remove(rm);
+				}
+				fireworksToRemove.clear();
+			}
+
+			for (int i = 0; i < charsOnScreen.size(); i++) {
+				charsOnScreen.get(i).posUpdate();
+				if (charsOnScreen.get(i).myYPos > WINDOW_HEIGHT) {
+					missed = charsOnScreen.get(i).myKanji + "  " + charsOnScreen.get(i).myRomaji;
+					missedWords.add(charsOnScreen.get(i).myKanji + "  " + charsOnScreen.get(i).myRomaji);
+					charsOnScreen.remove(i);
+					lives--;
+					combo = 0;
+					opacity = 0f;
+					displayComment = false;
+					DOGE.stop();
+					if (lives == 0) {
+						endGame(false);
+					}
+				}
+			}
+			break;
 		}
+		// for (Firework f : fireworks) {
+		// f.step();
+		// if (f.alpha < 0.0f) {
+		// fireworksToRemove.add(f);
+		// }
+		// }
+		//
+		// if (!fireworksToRemove.isEmpty()) {
+		// for (Firework rm : fireworksToRemove) {
+		// fireworks.remove(rm);
+		// }
+		// fireworksToRemove.clear();
+		// }
+		//
+		// for (int i = 0; i < charsOnScreen.size(); i++) {
+		// charsOnScreen.get(i).posUpdate();
+		// if (charsOnScreen.get(i).myYPos > WINDOW_HEIGHT) {
+		// missed = charsOnScreen.get(i).myKanji + " " +
+		// charsOnScreen.get(i).myRomaji;
+		// missedWords.add(charsOnScreen.get(i).myKanji + " " +
+		// charsOnScreen.get(i).myRomaji);
+		// charsOnScreen.remove(i);
+		// lives--;
+		// combo = 0;
+		// opacity = 0f;
+		// displayComment = false;
+		// DOGE.stop();
+		// if (lives == 0) {
+		// endGame(false);
+		// }
+		// }
+		// }
 	}
 
 	public void endGame(boolean forceQuit) {
-		if (gameWindow.gameMode == GAME_MODE.SUMMER) {
-			this.forceQuit = forceQuit;
-			gameWindow.gameOver = true;
-			gameWindow.refresh.stop();
+		this.forceQuit = forceQuit;
+		gameWindow.gameOver = true;
+		gameWindow.refresh.stop();
+
+		charsOnScreen.clear();
+		fireworks.clear();
+		opacity = 0f;
+		DOGE.stop();
+		displayComment = false;
+		missed = "";
+		gameWindow.buffer = "";
+		this.repaint();
+		switch(gameWindow.gameMode){
+		case SUMMER:
 			gameWindow.rateOfWordsTimer.stop();
 			gameWindow.addWordTimer.stop();
-			charsOnScreen.clear();
-			fireworks.clear();
-			opacity = 0f;
-			DOGE.stop();
-			displayComment = false;
-			missed = "";
-			gameWindow.buffer = "";
-			this.repaint();
-		} else if (gameWindow.gameMode == GAME_MODE.WINTER) {
-
+			break;
+		case WINTER:
+			break;
 		}
 	}
 
@@ -134,17 +174,10 @@ public class GamePanel extends JPanel implements ActionListener {
 									+ random.nextInt(gameWindow.difficultySetting.getValue())));
 			break;
 		case WINTER:
-			System.out.println("WINTER to be implemented");
-			charsOnScreen
-			.add(new JapaneseChar(wordDatabase.wordBank.get(index).myKanji,
-					wordDatabase.wordBank.get(index).myRomaji,
-					random.nextInt(WINDOW_WIDTH
-							- (wordDatabase.wordBank.get(index).myKanji.length() * gameWindow.fontSize) < 0
-									? 1
-									: WINDOW_WIDTH - (wordDatabase.wordBank.get(index).myKanji.length()
-											* gameWindow.fontSize)),
-					random.nextInt(30) + 10, gameWindow.difficultySetting.getValue()
-							+ random.nextInt(gameWindow.difficultySetting.getValue())));
+			charsOnScreen.add(new JapaneseChar(wordDatabase.wordBank.get(index).myKanji,
+					wordDatabase.wordBank.get(index).myRomaji, (WINDOW_WIDTH / 2) - (wordDatabase.wordBank.get(index).myKanji.length()
+							*60), WINDOW_HEIGHT / 2,
+					0));
 			break;
 		}
 	}
@@ -206,7 +239,15 @@ public class GamePanel extends JPanel implements ActionListener {
 			}
 		}
 
-		g.setFont(new Font("MS Mincho (Body Asian)", Font.BOLD, gameWindow.fontSize));
+		switch(gameWindow.gameMode){
+		case SUMMER:
+			g.setFont(new Font("MS Mincho (Body Asian)", Font.BOLD, gameWindow.fontSize));
+			break;
+		case WINTER:
+			g.setFont(new Font("MS Mincho (Body Asian)", Font.BOLD, 120));
+			break;
+		}
+
 		for (int i = 0; i < charsOnScreen.size(); i++) {
 			g.drawString(charsOnScreen.get(i).myKanji, charsOnScreen.get(i).myXPos, charsOnScreen.get(i).myYPos);
 		}

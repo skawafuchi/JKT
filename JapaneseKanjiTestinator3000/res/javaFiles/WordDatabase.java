@@ -14,14 +14,15 @@ public class WordDatabase {
 	public ArrayList<JapaneseChar> wordBank = new ArrayList<JapaneseChar>();
 	File lastDirectory;
 	SettingsLoader settingsLoader;
-
+	final String NO_VOCAB_MESSAGE = "Add Vocab";
+	
 	@SuppressWarnings("serial")
 	public WordDatabase(SettingsLoader sl) {
 		settingsLoader = sl;
 		if (settingsLoader.successfulLoad) {
 			lastDirectory = new File(settingsLoader.settings.get("vocabDirectory"));
 		}
-		wordBank.add(new JapaneseChar("Add Vocab Set", new HashSet<String>() {
+		wordBank.add(new JapaneseChar(NO_VOCAB_MESSAGE, new HashSet<String>() {
 			{
 				add("error");
 			}
@@ -88,7 +89,7 @@ public class WordDatabase {
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Error Loading File\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
 				wordBank.clear();
-				wordBank.add(new JapaneseChar("No Vocabulary Set Added", new HashSet<String>() {
+				wordBank.add(new JapaneseChar(NO_VOCAB_MESSAGE, new HashSet<String>() {
 					{
 						add("error");
 					}

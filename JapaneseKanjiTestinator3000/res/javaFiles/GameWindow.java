@@ -62,18 +62,18 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 
 		try {
 			music = AudioSystem.getClip();
-			AudioInputStream inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("test.wav"));//this.getClass().getResource("test.wav"));
+			AudioInputStream inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("test.wav"));// this.getClass().getResource("test.wav"));
 			music.open(inputStream);
 			musicGainControl = (FloatControl) music.getControl(FloatControl.Type.MASTER_GAIN);
 			musicGainControl.setValue((musicVolLvl * (50.0f + musicGainControl.getMaximum()) - 50.0f));
 
-			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("correct.wav"));//this.getClass().getResource("correct.wav"));
+			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("correct.wav"));// this.getClass().getResource("correct.wav"));
 			correctSFX = AudioSystem.getClip();
 			correctSFX.open(inputStream);
 			correctSFXGainControl = (FloatControl) correctSFX.getControl(FloatControl.Type.MASTER_GAIN);
 			correctSFXGainControl.setValue((SFXVolLvl * (50.0f + correctSFXGainControl.getMaximum()) - 50.0f));
 
-			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("incorrect.wav"));//this.getClass().getResource("incorrect.wav"));
+			inputStream = AudioSystem.getAudioInputStream(ResourceLoader.load("incorrect.wav"));// this.getClass().getResource("incorrect.wav"));
 			incorrectSFX = AudioSystem.getClip();
 			incorrectSFX.open(inputStream);
 			incorrectSFXGainControl = (FloatControl) incorrectSFX.getControl(FloatControl.Type.MASTER_GAIN);
@@ -440,13 +440,42 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 				buffer += " ";
 				break;
 			case KeyEvent.VK_ENTER:
-				for (int i = 0; i < gPanel.charsOnScreen.size(); i++) {
-					if (gPanel.charsOnScreen.get(i).myRomaji.contains(buffer)) {
-						gPanel.fireworks.add(new Firework(
-								gPanel.charsOnScreen.get(i).myXPos
-										+ ((gPanel.charsOnScreen.get(i).myKanji.length() * fontSize) / 2),
-								gPanel.charsOnScreen.get(i).myYPos, 500));
-						gPanel.charsOnScreen.remove(i);
+				switch (gameMode) {
+				case SUMMER:
+					for (int i = 0; i < gPanel.charsOnScreen.size(); i++) {
+						if (gPanel.charsOnScreen.get(i).myRomaji.contains(buffer)) {
+							gPanel.fireworks.add(new Firework(
+									gPanel.charsOnScreen.get(i).myXPos
+											+ ((gPanel.charsOnScreen.get(i).myKanji.length() * fontSize) / 2),
+									gPanel.charsOnScreen.get(i).myYPos, 500));
+							gPanel.charsOnScreen.remove(i);
+							gPanel.score += 1 + 1 * gPanel.combo;
+							gPanel.combo++;
+							if (correctSFX.isRunning()) {
+								correctSFX.stop();
+							}
+							correctSFX.setFramePosition(0);
+							correctSFX.start();
+							if (gPanel.combo > gPanel.highestCombo) {
+								gPanel.highestCombo++;
+							}
+							break;
+						}
+						if (i == gPanel.charsOnScreen.size() - 1) {
+							gPanel.combo = 0;
+							gPanel.DOGE.stop();
+							gPanel.displayComment = false;
+							if (incorrectSFX.isRunning()) {
+								incorrectSFX.stop();
+							}
+							incorrectSFX.setFramePosition(0);
+							incorrectSFX.start();
+						}
+					}
+					break;
+				case WINTER:
+					if (gPanel.charsOnScreen.get(0).myRomaji.contains(buffer)) {
+						gPanel.charsOnScreen.remove(0);
 						gPanel.score += 1 + 1 * gPanel.combo;
 						gPanel.combo++;
 						if (correctSFX.isRunning()) {
@@ -457,9 +486,9 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 						if (gPanel.combo > gPanel.highestCombo) {
 							gPanel.highestCombo++;
 						}
+						gPanel.addWord();
 						break;
-					}
-					if (i == gPanel.charsOnScreen.size() - 1) {
+					} else {
 						gPanel.combo = 0;
 						gPanel.DOGE.stop();
 						gPanel.displayComment = false;
@@ -469,6 +498,8 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 						incorrectSFX.setFramePosition(0);
 						incorrectSFX.start();
 					}
+
+					break;
 				}
 				buffer = "";
 				break;
@@ -492,24 +523,31 @@ public class GameWindow extends JFrame implements ActionListener, KeyListener, M
 	public void keyReleased(KeyEvent e) {
 		// Start game
 		if (e.getKeyCode() == KeyEvent.VK_SPACE && gameOver) {
-			for (int i = 0; i < difficultySetting.getValue(); i++) {
-				gPanel.addWord();
-			}
 			gPanel.lives = gPanel.MAX_LIVES;
 			gPanel.score = 0;
 			gPanel.combo = 0;
 			gPanel.highestCombo = 0;
 			gPanel.missedWords.clear();
 			gameOver = false;
-			refresh = new Timer(40, this);
+			refresh = new Timer(20, this);
 			refresh.start();
-			rateOfWordsTimer = new Timer(10000 - difficultySetting.getValue() * 1000, this);
-			rateOfWordsTimer.start();
-			addWordTimer = new Timer(7500 - (difficultySetting.getValue() * 2000), this);
-			addWordTimer.start();
 			increment = 0;
 			this.pack();
 			this.repaint();
+			switch (gameMode) {
+			case SUMMER:
+				rateOfWordsTimer = new Timer(10000 - difficultySetting.getValue() * 1000, this);
+				rateOfWordsTimer.start();
+				addWordTimer = new Timer(7500 - (difficultySetting.getValue() * 2000), this);
+				addWordTimer.start();
+				for (int i = 0; i < difficultySetting.getValue(); i++) {
+					gPanel.addWord();
+				}
+				break;
+			case WINTER:
+				gPanel.addWord();
+				break;
+			}
 		}
 	}
 
